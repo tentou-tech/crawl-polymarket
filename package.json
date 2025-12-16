@@ -1,0 +1,40 @@
+{
+  "name": "crawl-polymarket",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node src/index.ts",
+    "migrate": "knex migrate:latest --knexfile src/database/knexfile.ts",
+    "migrate:prod": "knex migrate:latest --knexfile dist/database/knexfile.js",
+    "migrate:rollback": "knex migrate:rollback --knexfile src/database/knexfile.ts",
+    "migrate:make": "knex migrate:make --knexfile src/database/knexfile.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@bull-board/api": "^6.15.0",
+    "@bull-board/express": "^6.15.0",
+    "@polymarket/clob-client": "^5.1.1",
+    "axios": "^1.13.2",
+    "bullmq": "^5.66.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "knex": "^3.1.0",
+    "objection": "^3.1.5",
+    "pg": "^8.16.3",
+    "pino": "^10.1.0",
+    "viem": "^2.42.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.2",
+    "@types/pg": "^8.16.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
