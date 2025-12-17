@@ -45,6 +45,49 @@ export abstract class BaseCrawlerService {
     console.log(`Listening for events on ${contractAddress}...`);
   }
 
+  async crawlHistory(
+    contractAddress: string,
+    fromBlock: bigint,
+    toBlock: bigint
+  ) {
+    console.log(
+      `Starting historical crawl for ${contractAddress} from ${fromBlock} to ${toBlock}`
+    );
+
+    const CHUNK_SIZE = 2000n;
+    let currentBlock = fromBlock;
+
+    while (currentBlock <= toBlock) {
+      const endBlock =
+        currentBlock + CHUNK_SIZE > toBlock
+          ? toBlock
+          : currentBlock + CHUNK_SIZE;
+      console.log(`Fetching logs from ${currentBlock} to ${endBlock}...`);
+
+      try {
+        const logs = await this.client.getLogs({
+          address: contractAddress as `0x${string}`,
+          events: this.eventsAbi,
+          fromBlock: currentBlock,
+          toBlock: endBlock,
+        });
+
+        console.log(`Received ${logs.length} historical events`);
+        for (const log of logs) {
+          await this.processLog(log);
+        }
+      } catch (e) {
+        console.error(
+          `Error fetching logs for range ${currentBlock}-${endBlock}:`,
+          e
+        );
+      }
+
+      currentBlock = endBlock + 1n;
+    }
+    console.log('Historical crawl completed.');
+  }
+
   private async processLog(log: any) {
     // Check if event already exists to avoid duplicates
     const existing = await Event.query()
