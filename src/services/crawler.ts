@@ -8,8 +8,12 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 // Polymarket CTF Exchange Events
 const POLYMARKET_EVENTS = [
-  parseAbiItem('event OrderFilled(bytes32 indexed orderHash, address indexed maker, address indexed taker, uint256 makerAssetId, uint256 takerAssetId, uint256 making, uint256 taking, uint256 fee)'),
-  parseAbiItem('event OrdersMatched(bytes32 indexed orderHash, address indexed maker, uint256 makerAssetId, uint256 takerAssetId, uint256 making, uint256 taking)')
+  parseAbiItem(
+    'event OrderFilled(bytes32 indexed orderHash, address indexed maker, address indexed taker, uint256 makerAssetId, uint256 takerAssetId, uint256 making, uint256 taking, uint256 fee)'
+  ),
+  parseAbiItem(
+    'event OrdersMatched(bytes32 indexed orderHash, address indexed maker, uint256 makerAssetId, uint256 takerAssetId, uint256 making, uint256 taking)'
+  ),
 ];
 
 export class CrawlerService {
@@ -17,8 +21,8 @@ export class CrawlerService {
 
   constructor() {
     // Requires WS_RPC_URL in .env, e.g. wss://polygon-mainnet.g.alchemy.com/v2/...
-    const transport = process.env.WS_RPC_URL 
-      ? webSocket(process.env.WS_RPC_URL) 
+    const transport = process.env.WS_RPC_URL
+      ? webSocket(process.env.WS_RPC_URL)
       : webSocket(); // Fallback to default (might fail if no URL)
 
     this.client = createPublicClient({
@@ -41,7 +45,7 @@ export class CrawlerService {
       },
       onError: (error) => {
         console.error('WebSocket Error:', error);
-      }
+      },
     });
 
     console.log('Listening for events...');
@@ -56,13 +60,15 @@ export class CrawlerService {
       .first();
 
     if (existing) {
-        return;
+      return;
     }
 
     // Handle BigInt serialization for args
-    const args = JSON.parse(JSON.stringify(log.args, (_, v) => 
+    const args = JSON.parse(
+      JSON.stringify(log.args, (_, v) =>
         typeof v === 'bigint' ? v.toString() : v
-    ));
+      )
+    );
 
     await Event.query().insert({
       transactionHash: log.transactionHash,
@@ -75,17 +81,26 @@ export class CrawlerService {
 
     // Dispatch job for OrdersMatched to fetch Market Metadata
     if (log.eventName === 'OrdersMatched') {
-        const { makerAssetId, takerAssetId } = args;
-        const tokenId = makerAssetId || takerAssetId;
+      const { makerAssetId, takerAssetId } = args;
+      const tokenId = makerAssetId || takerAssetId;
 
-        if (tokenId) {
-            const { addMarketJob } = require('../jobs/marketQueue'); 
-            await addMarketJob(tokenId.toString(), Number(log.logIndex), log.transactionHash);
-            console.log(`Queued market fetch for asset ${tokenId}`);
+      if (tokenId) {
+        const { addMarketJob } = require('../jobs/marketQueue');
+        await addMarketJob(
+          tokenId.toString(),
+          Number(log.logIndex),
+          log.transactionHash
+        );
+        console.log(`Queued market fetch for asset ${tokenId}`);
 
-            const { addTradeJob } = require('../jobs/tradeQueue');
-            await addTradeJob(log.transactionHash, Number(log.blockNumber), Number(log.logIndex), args);
-        }
+        const { addTradeJob } = require('../jobs/tradeQueue');
+        await addTradeJob(
+          log.transactionHash,
+          Number(log.blockNumber),
+          Number(log.logIndex),
+          args
+        );
+      }
     }
   }
 }

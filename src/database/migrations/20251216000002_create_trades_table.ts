@@ -5,14 +5,14 @@ export async function up(knex: Knex): Promise<void> {
     table.increments('id').primary();
     table.string('transaction_hash').notNullable();
     table.bigInteger('block_number').notNullable();
-    
+
     table.string('maker').notNullable();
     table.string('taker').nullable();
-    
+
     table.string('order_hash').notNullable();
     table.string('asset_id').notNullable();
     table.string('side').notNullable(); // 'BUY' or 'SELL'
-    
+
     table.string('market_slug').nullable();
     table.string('outcome').nullable();
 

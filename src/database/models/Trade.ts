@@ -39,8 +39,8 @@ export class Trade extends Model {
         shares: { type: 'number' },
         usdcVolume: { type: 'number' },
         timestamp: { type: 'string', format: 'date-time' },
-        createdAt: { type: 'string', format: 'date-time' }
-      }
+        createdAt: { type: 'string', format: 'date-time' },
+      },
     };
   }
 }

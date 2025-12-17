@@ -9,7 +9,7 @@ export class MarketService {
   constructor() {
     // Basic read-only client doesn't need signer/creds for public endpoints like getMarkets
     this.client = new ClobClient('https://clob.polymarket.com', 137);
-    
+
     // Gamma API client
     this.gammaClient = axios.create({
       baseURL: 'https://gamma-api.polymarket.com',
@@ -20,9 +20,9 @@ export class MarketService {
   async getMarkets() {
     try {
       console.log('Fetching markets from Polymarket SDK...');
-      // Fetching a simplified view or specific markets usually takes params. 
+      // Fetching a simplified view or specific markets usually takes params.
       // getMarkets with no args might fetch a lot or paginated list.
-      const response = await this.client.getMarkets(); 
+      const response = await this.client.getMarkets();
       // The SDK returns a paginated payload, likely { data: [...] } or an array depending on version.
       // Based on lint error 'PaginationPayload', it returns an object.
       const markets = (response as any).data || [];
@@ -54,10 +54,14 @@ export class MarketService {
       // Gamma API supports filtering by clob_token_ids
       const response = await this.gammaClient.get('/markets', {
         params: {
-          clob_token_ids: tokenId
-        }
+          clob_token_ids: tokenId,
+        },
       });
-      console.log(`Gamma API returned ${response.data?.length || 0} markets for token ${tokenId}`);
+      console.log(
+        `Gamma API returned ${
+          response.data?.length || 0
+        } markets for token ${tokenId}`
+      );
       return response.data;
     } catch (error) {
       console.error(`Error fetching market for token ${tokenId}:`, error);

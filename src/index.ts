@@ -32,7 +32,7 @@ async function start() {
 
   // Start Workers
   startMarketWorker();
-  
+
   const { startTradeWorker } = await import('./jobs/tradeWorker');
   startTradeWorker();
 
@@ -54,11 +54,11 @@ async function start() {
     '0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E', // CTF Exchange
     '0xC5d563A36AE78145C45a50134d48A1215220f80a', // Example: Neg Risk Adapter or other
   ];
-  
+
   const crawlerService = new CrawlerService();
-  
+
   // // Start listening for all contracts (concurrently)
-  await Promise.all(CONTRACTS.map(address => crawlerService.listen(address)));
+  await Promise.all(CONTRACTS.map((address) => crawlerService.listen(address)));
 
   // Test SDK Integration
   // try {
@@ -68,7 +68,7 @@ async function start() {
   //     ('35202350012414952759827037718672984608717610908615367494687057298083953893042');
   //     console.log(market);
   //     console.log('CLOB Market:', market.market_slug);
-      
+
   //     // Test Gamma API via Axios
   //     // Using a known slug or the one we just fetched
   //     // if (market.market_slug) {
@@ -78,7 +78,6 @@ async function start() {
   // } catch (err) {
   //     console.error("Failed to run SDK test:", err);
   // }
-
 
   // Keep process alive
   process.on('SIGTERM', async () => {

@@ -16,7 +16,12 @@ export class Event extends Model {
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['transactionHash', 'blockNumber', 'contractAddress', 'eventName'],
+      required: [
+        'transactionHash',
+        'blockNumber',
+        'contractAddress',
+        'eventName',
+      ],
 
       properties: {
         id: { type: 'integer' },
@@ -25,8 +30,8 @@ export class Event extends Model {
         contractAddress: { type: 'string' },
         eventName: { type: 'string' },
         args: { type: 'object' },
-        createdAt: { type: 'string', format: 'date-time' }
-      }
+        createdAt: { type: 'string', format: 'date-time' },
+      },
     };
   }
 }

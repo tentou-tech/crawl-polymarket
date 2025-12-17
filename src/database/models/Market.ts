@@ -29,8 +29,8 @@ export class Market extends Model {
         clobTokenId_1: { type: ['string', 'null'] },
         data: { type: 'object' },
         createdAt: { type: 'string', format: 'date-time' },
-        updatedAt: { type: 'string', format: 'date-time' }
-      }
+        updatedAt: { type: 'string', format: 'date-time' },
+      },
     };
   }
 }

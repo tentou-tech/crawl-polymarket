@@ -19,7 +19,7 @@ export const addTradeJob = async (
       transactionHash,
       blockNumber,
       logIndex,
-      args
+      args,
     },
     {
       jobId: `trade-${transactionHash}-${logIndex}`, // Deduplicate by tx-logIndex
@@ -29,7 +29,7 @@ export const addTradeJob = async (
       backoff: {
         type: 'exponential',
         delay: 2000,
-      }
+      },
     }
   );
 };
