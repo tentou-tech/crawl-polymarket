@@ -3,10 +3,15 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node src/index.ts",
-    "crawl:history": "ts-node src/scripts/crawlHistory.ts"
+    "crawl:history": "ts-node src/scripts/crawlHistory.ts",
+    "migrate": "knex migrate:latest --knexfile src/database/knexfile.ts",
+    "migrate:prod": "knex migrate:latest --knexfile dist/database/knexfile.js",
+    "migrate:rollback": "knex migrate:rollback --knexfile src/database/knexfile.ts",
+    "migrate:make": "knex migrate:make --knexfile src/database/knexfile.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
