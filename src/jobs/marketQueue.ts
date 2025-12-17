@@ -29,3 +29,25 @@ export const addMarketJob = async (
     }
   );
 };
+
+export const addMarketResolutionJob = async (
+  questionId: string,
+  settledPrice: string,
+  payouts: string[],
+  transactionHash: string
+) => {
+  await marketQueue.add(
+    'process-market-resolution',
+    {
+      questionId,
+      settledPrice,
+      payouts,
+      transactionHash,
+    },
+    {
+      jobId: `resolution-${questionId}`, // Ensure we only process resolution once per question
+      removeOnComplete: true,
+      removeOnFail: 100,
+    }
+  );
+};

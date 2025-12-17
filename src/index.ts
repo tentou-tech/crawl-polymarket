@@ -1,7 +1,8 @@
 import { Model } from 'objection';
 import Knex from 'knex';
 import knexConfig from './database/knexfile';
-import { CrawlerService } from './services/crawler';
+import { CrawlerCTFExchangeService } from './services/crawlerCtfExchange';
+import { CrawlerUmaCtfAdapterService } from './services/crawlerUmaCtfAdapter';
 import { startMarketWorker } from './jobs/marketWorker'; // Start worker
 import { marketQueue } from './jobs/marketQueue';
 import { tradeQueue } from './jobs/tradeQueue';
@@ -50,15 +51,31 @@ async function start() {
   });
 
   // Polymarket CTF Exchange Addresses
-  const CONTRACTS = [
+  const CTF_EXCHANGE_CONTRACTS = [
     '0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E', // CTF Exchange
-    '0xC5d563A36AE78145C45a50134d48A1215220f80a', // Example: Neg Risk Adapter or other
+    '0xC5d563A36AE78145C45a50134d48A1215220f80a', // Neg Risk Adapter
   ];
 
-  const crawlerService = new CrawlerService();
+  // UMA CTF Adapter Addresses
+  const UMA_CTF_ADAPTER_CONTRACTS = [
+    '0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74',
+    '0x157ce2d672854c848c9b79c49a8cc6cc89176a49',
+  ];
 
-  // // Start listening for all contracts (concurrently)
-  await Promise.all(CONTRACTS.map((address) => crawlerService.listen(address)));
+  const crawlerService = new CrawlerCTFExchangeService();
+  const crawlerUmaCtfAdapterService = new CrawlerUmaCtfAdapterService();
+
+  // Start listening for CTF Exchange contracts
+  await Promise.all(
+    CTF_EXCHANGE_CONTRACTS.map((address) => crawlerService.listen(address))
+  );
+
+  // Start listening for UMA CTF Adapter contracts
+  await Promise.all(
+    UMA_CTF_ADAPTER_CONTRACTS.map((address) =>
+      crawlerUmaCtfAdapterService.listen(address)
+    )
+  );
 
   // Test SDK Integration
   // try {

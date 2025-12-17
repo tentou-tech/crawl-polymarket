@@ -1,4 +1,4 @@
-import { createPublicClient, webSocket, parseAbiItem, Log } from 'viem';
+import { createPublicClient, webSocket, parseAbiItem } from 'viem';
 import { polygon } from 'viem/chains';
 import { Event } from '../database/models/Event';
 import dotenv from 'dotenv';
@@ -6,24 +6,21 @@ import path from 'path';
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
-// Polymarket CTF Exchange Events
-const POLYMARKET_EVENTS = [
+// UMA CTF Adapter Events
+const UMA_CTF_ADAPTER_EVENTS = [
   parseAbiItem(
-    'event OrderFilled(bytes32 indexed orderHash, address indexed maker, address indexed taker, uint256 makerAssetId, uint256 takerAssetId, uint256 making, uint256 taking, uint256 fee)'
-  ),
-  parseAbiItem(
-    'event OrdersMatched(bytes32 indexed orderHash, address indexed maker, uint256 makerAssetId, uint256 takerAssetId, uint256 making, uint256 taking)'
+    'event QuestionResolved(bytes32 indexed questionID, int256 indexed settledPrice, uint256[] payouts)'
   ),
 ];
 
-export class CrawlerService {
+export class CrawlerUmaCtfAdapterService {
   private client;
 
   constructor() {
-    // Requires WS_RPC_URL in .env, e.g. wss://polygon-mainnet.g.alchemy.com/v2/...
+    // Requires WS_RPC_URL in .env
     const transport = process.env.WS_RPC_URL
       ? webSocket(process.env.WS_RPC_URL)
-      : webSocket(); // Fallback to default (might fail if no URL)
+      : webSocket(); 
 
     this.client = createPublicClient({
       chain: polygon,
@@ -32,23 +29,23 @@ export class CrawlerService {
   }
 
   async listen(contractAddress: string) {
-    console.log(`Starting WebSocket listener for ${contractAddress}`);
+    console.log(`Starting WebSocket listener for UMA CTF Adapter ${contractAddress}`);
 
     this.client.watchEvent({
       address: contractAddress as `0x${string}`,
-      events: POLYMARKET_EVENTS,
+      events: UMA_CTF_ADAPTER_EVENTS,
       onLogs: async (logs) => {
-        console.log(`Received ${logs.length} new events via WebSocket`);
+        console.log(`Received ${logs.length} new UMA CTF Adapter events via WebSocket`);
         for (const log of logs) {
           await this.saveEvent(log);
         }
       },
       onError: (error) => {
-        console.error('WebSocket Error:', error);
+        console.error('WebSocket Error (UMA CTF Adapter):', error);
       },
     });
 
-    console.log('Listening for events...');
+    console.log(`Listening for UMA CTF Adapter events on ${contractAddress}...`);
   }
 
   private async saveEvent(log: any) {
@@ -79,27 +76,17 @@ export class CrawlerService {
     });
     console.log(`Saved event ${log.eventName} from tx ${log.transactionHash}`);
 
-    // Dispatch job for OrdersMatched to fetch Market Metadata
-    if (log.eventName === 'OrdersMatched') {
-      const { makerAssetId, takerAssetId } = args;
-      const tokenId = makerAssetId || takerAssetId;
-
-      if (tokenId) {
-        const { addMarketJob } = require('../jobs/marketQueue');
-        await addMarketJob(
-          tokenId.toString(),
-          Number(log.logIndex),
+    if (log.eventName === 'QuestionResolved') {
+      const { questionID, settledPrice, payouts } = args;
+      if (questionID) {
+        const { addMarketResolutionJob } = require('../jobs/marketQueue');
+        await addMarketResolutionJob(
+          questionID,
+          settledPrice.toString(),
+          payouts.map((p: any) => p.toString()),
           log.transactionHash
         );
-        console.log(`Queued market fetch for asset ${tokenId}`);
-
-        const { addTradeJob } = require('../jobs/tradeQueue');
-        await addTradeJob(
-          log.transactionHash,
-          Number(log.blockNumber),
-          Number(log.logIndex),
-          args
-        );
+        console.log(`Queued market resolution for question ${questionID}`);
       }
     }
   }
