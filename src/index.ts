@@ -68,10 +68,10 @@ async function start() {
   const crawlerUmaCtfAdapterService = new CrawlerUmaCtfAdapterService();
 
   // Start listening for CTF Exchange contracts
-  await crawlerCtxExchangeService.listen(CTF_EXCHANGE_CONTRACTS);
+  crawlerCtxExchangeService.listen(CTF_EXCHANGE_CONTRACTS);
 
   // Start listening for UMA CTF Adapter contracts
-  await crawlerUmaCtfAdapterService.listen(UMA_CTF_ADAPTER_CONTRACTS);
+  crawlerUmaCtfAdapterService.listen(UMA_CTF_ADAPTER_CONTRACTS);
 
   // Test SDK Integration
   // try {

@@ -71,8 +71,8 @@ export const startTradeWorker = () => {
         // Queue market fetch if not exists
         // Find market to get Name and Outcome
         const market = await Market.query()
-          .where('clobTokenId_0', tokenId)
-          .orWhere('clobTokenId_1', tokenId)
+          .where('clobTokenId0', tokenId)
+          .orWhere('clobTokenId1', tokenId)
           .first();
 
         let marketSlug = null;

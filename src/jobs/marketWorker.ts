@@ -101,15 +101,15 @@ async function processFetchMarketMetadata(makerAssetId: string) {
       console.error('Failed to parse clobTokenIds:', clobTokenIdsStr);
       clobTokenIds = [];
     }
-    const clobTokenId_0 = clobTokenIds[0] || null;
-    const clobTokenId_1 = clobTokenIds[1] || null;
+    const clobTokenId0 = clobTokenIds[0] || null;
+    const clobTokenId1 = clobTokenIds[1] || null;
 
     if (existing) {
       // Update data if needed
       await existing.$query().patch({
         data: market,
-        clobTokenId_0,
-        clobTokenId_1,
+        clobTokenId0,
+        clobTokenId1,
         updatedAt: new Date().toISOString() as any, // Cast to any to satisfy TS validation if needed
       });
       console.log(`Updated market ${slug}`);
@@ -118,8 +118,8 @@ async function processFetchMarketMetadata(makerAssetId: string) {
         conditionId,
         questionId: questionId,
         slug,
-        clobTokenId_0,
-        clobTokenId_1,
+        clobTokenId0,
+        clobTokenId1,
         data: market,
       });
       console.log(`Created market ${slug}`);
@@ -147,10 +147,10 @@ async function processMarketResolution(
 
     let updatedMarketData = market.data;
 
-    // If clobTokenId_0 exists, fetch the latest market data for it
-    if (market.clobTokenId_0) {
+    // If clobTokenId0 exists, fetch the latest market data for it
+    if (market.clobTokenId0) {
       const newMarketInfoResponse = await marketService.getMarketByTokenId(
-        market.clobTokenId_0
+        market.clobTokenId0
       );
 
       const newMarketInfo = Array.isArray(newMarketInfoResponse)
@@ -167,7 +167,7 @@ async function processMarketResolution(
         }
 
         console.log(
-          `Fetched latest market info for ${market.clobTokenId_0} during resolution.`
+          `Fetched latest market info for ${market.clobTokenId0} during resolution.`
         );
         updatedMarketData = { ...updatedMarketData, ...newMarketInfo };
       }
