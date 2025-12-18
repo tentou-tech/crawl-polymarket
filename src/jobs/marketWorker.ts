@@ -39,11 +39,7 @@ export const startMarketWorker = () => {
     },
     {
       connection: redisConnection,
-      concurrency: 2, // Low concurrency to rate limit API calls
-      limiter: {
-        max: 5,
-        duration: 1000, // Max 5 requests per second
-      },
+      concurrency: 5,
     }
   );
 

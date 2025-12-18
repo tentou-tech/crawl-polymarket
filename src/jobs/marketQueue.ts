@@ -48,6 +48,11 @@ export const addMarketResolutionJob = async (
       jobId: `resolution-${questionId}`, // Ensure we only process resolution once per question
       removeOnComplete: true,
       removeOnFail: 100,
+      attempts: 10,
+      backoff: {
+        type: 'exponential',
+        delay: 2000,
+      },
     }
   );
 };
