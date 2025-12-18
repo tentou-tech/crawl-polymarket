@@ -23,11 +23,10 @@ export abstract class BaseCrawlerService {
     });
   }
 
-  async listen(contractAddress: string) {
+  async listen(contractAddress: string | string[]) {
     console.log(`Starting WebSocket listener for ${contractAddress}`);
-
     this.client.watchEvent({
-      address: contractAddress as `0x${string}`,
+      address: contractAddress as `0x${string}` | `0x${string}`[],
       events: this.eventsAbi,
       onLogs: async (logs) => {
         console.log(
@@ -46,7 +45,7 @@ export abstract class BaseCrawlerService {
   }
 
   async crawlHistory(
-    contractAddress: string,
+    contractAddress: string | string[],
     fromBlock: bigint,
     toBlock: bigint
   ) {
@@ -66,7 +65,7 @@ export abstract class BaseCrawlerService {
 
       try {
         const logs = await this.client.getLogs({
-          address: contractAddress as `0x${string}`,
+          address: contractAddress as `0x${string}` | `0x${string}`[],
           events: this.eventsAbi,
           fromBlock: currentBlock,
           toBlock: endBlock,

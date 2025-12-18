@@ -158,6 +158,14 @@ async function processMarketResolution(
         : newMarketInfoResponse;
 
       if (newMarketInfo) {
+        // If the market is not yet closed in the API, throw an error to retry the job.
+        // Sometimes the SDK/API lags behind the blockchain event.
+        if (newMarketInfo.closed === false) {
+          throw new Error(
+            `Market ${market.slug} is not yet closed in Polymarket API. Retrying resolution process...`
+          );
+        }
+
         console.log(
           `Fetched latest market info for ${market.clobTokenId_0} during resolution.`
         );

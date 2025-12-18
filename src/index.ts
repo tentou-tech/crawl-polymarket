@@ -64,20 +64,14 @@ async function start() {
     '0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d',
   ];
 
-  const crawlerService = new CrawlerCTFExchangeService();
+  const crawlerCtxExchangeService = new CrawlerCTFExchangeService();
   const crawlerUmaCtfAdapterService = new CrawlerUmaCtfAdapterService();
 
   // Start listening for CTF Exchange contracts
-  await Promise.all(
-    CTF_EXCHANGE_CONTRACTS.map((address) => crawlerService.listen(address))
-  );
+  await crawlerCtxExchangeService.listen(CTF_EXCHANGE_CONTRACTS);
 
   // Start listening for UMA CTF Adapter contracts
-  await Promise.all(
-    UMA_CTF_ADAPTER_CONTRACTS.map((address) =>
-      crawlerUmaCtfAdapterService.listen(address)
-    )
-  );
+  await crawlerUmaCtfAdapterService.listen(UMA_CTF_ADAPTER_CONTRACTS);
 
   // Test SDK Integration
   // try {
