@@ -60,6 +60,8 @@ async function start() {
   const UMA_CTF_ADAPTER_CONTRACTS = [
     '0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74',
     '0x157ce2d672854c848c9b79c49a8cc6cc89176a49',
+    '0x65070BE91477460D8A7AeEb94ef92fe056C2f2A7',
+    '0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d',
   ];
 
   const crawlerService = new CrawlerCTFExchangeService();
