@@ -1,4 +1,4 @@
-import { createPublicClient, webSocket } from 'viem';
+import { createPublicClient, webSocket, http, PublicClient } from 'viem';
 import { polygon } from 'viem/chains';
 import { Event } from '../database/models/Event';
 import dotenv from 'dotenv';
@@ -7,20 +7,25 @@ import path from 'path';
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 export abstract class BaseCrawlerService {
-  protected client;
+  protected client: PublicClient;
   protected eventsAbi: any[];
 
-  constructor(eventsAbi: any[]) {
+  constructor(eventsAbi: any[], client?: PublicClient) {
     this.eventsAbi = eventsAbi;
-    // Requires WS_RPC_URL in .env
-    const transport = process.env.WS_RPC_URL
-      ? webSocket(process.env.WS_RPC_URL)
-      : webSocket();
 
-    this.client = createPublicClient({
-      chain: polygon,
-      transport,
-    });
+    if (client) {
+      this.client = client;
+    } else {
+      // Requires WS_RPC_URL or RPC_URL in .env
+      const transport = process.env.WS_RPC_URL
+        ? webSocket(process.env.WS_RPC_URL)
+        : http(process.env.RPC_URL);
+
+      this.client = createPublicClient({
+        chain: polygon,
+        transport,
+      }) as PublicClient;
+    }
   }
 
   async listen(contractAddress: string | string[]) {
@@ -53,7 +58,7 @@ export abstract class BaseCrawlerService {
       `Starting historical crawl for ${contractAddress} from ${fromBlock} to ${toBlock}`
     );
 
-    const CHUNK_SIZE = 2000n;
+    const CHUNK_SIZE = 10n;
     let currentBlock = fromBlock;
 
     while (currentBlock <= toBlock) {

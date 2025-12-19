@@ -95,3 +95,15 @@ The `data` field in the `Market` model contains the raw JSON response from the P
 
 ### 7. Hierarchy
 *   **`events`**: The parent event this market belongs to (events can contain multiple related markets).
+
+### 8. Market Status Fields
+These boolean fields in the `data` object indicate the current lifecycle state of a market:
+
+| Field | Meaning |
+| :--- | :--- |
+| `active` | Market is currently tradeable. |
+| `closed` | Market has ended and is no longer tradeable. |
+| `archived` | Market is no longer displayed in the primary UI. |
+| `acceptingOrders` | The CLOB is actively accepting new orders for this market. |
+| `ready` | Market has been initialized and is ready for trading activity. |
+| `deploying` | Market is currently in the process of being deployed on-chain. |

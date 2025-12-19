@@ -6,6 +6,8 @@ import { polygon } from 'viem/chains';
 
 import { CrawlerCTFExchangeService } from '../services/crawlerCtfExchange';
 import { CrawlerUmaCtfAdapterService } from '../services/crawlerUmaCtfAdapter';
+import { startMarketWorker } from '../jobs/marketWorker';
+import { startTradeWorker } from '../jobs/tradeWorker';
 
 import dotenv from 'dotenv';
 import path from 'path';
@@ -17,6 +19,11 @@ async function start() {
   const knex = Knex(knexConfig);
   Model.knex(knex);
   console.log('Database connected');
+
+  // Start Workers
+  console.log('Starting workers...');
+  startMarketWorker();
+  startTradeWorker();
 
   // Polymarket CTF Exchange Addresses
   const CTF_EXCHANGE_CONTRACTS = [
@@ -30,9 +37,6 @@ async function start() {
     '0x157ce2d672854c848c9b79c49a8cc6cc89176a49',
   ];
 
-  const crawlerCTF = new CrawlerCTFExchangeService();
-  const crawlerUMA = new CrawlerUmaCtfAdapterService();
-
   // Using http transport for historical fetches as it's generally more stable
   // for large number of requests than websockets for one-off tasks.
   const publicClient = createPublicClient({
@@ -40,12 +44,17 @@ async function start() {
     transport: http(process.env.RPC_URL),
   });
 
+  const crawlerCTF = new CrawlerCTFExchangeService(publicClient);
+  const crawlerUMA = new CrawlerUmaCtfAdapterService(publicClient);
+
   const currentBlock = await publicClient.getBlockNumber();
   // Example: Start from block 30000000 (adjust as needed for actual contract deployment)
-  const fromBlock = 30000000n; 
-  const toBlock = currentBlock;
+  const fromBlock = 80000000n;
+  const toBlock = 80381094n;
 
-  console.log(`Starting historical crawl from block ${fromBlock} to ${toBlock}`);
+  console.log(
+    `Starting historical crawl from block ${fromBlock} to ${toBlock}`
+  );
 
   // Crawl CTF Exchange Contracts
   await Promise.all(
@@ -55,15 +64,18 @@ async function start() {
   );
 
   // Crawl UMA CTF Adapter Contracts
-  await Promise.all(
-    UMA_CTF_ADAPTER_CONTRACTS.map((address) =>
-      crawlerUMA.crawlHistory(address, fromBlock, toBlock)
-    )
-  );
+  // await Promise.all(
+  //   UMA_CTF_ADAPTER_CONTRACTS.map((address) =>
+  //     crawlerUMA.crawlHistory(address, fromBlock, toBlock)
+  //   )
+  // );
 
   console.log('All historical crawls completed.');
-  await knex.destroy(); // Close DB connection
-  process.exit(0);
+  console.log(
+    'Process will stay alive to allow workers to finish processing...'
+  );
+  // await knex.destroy(); // Do not close DB connection, workers need it
+  // process.exit(0); // Do not exit, keep workers running
 }
 
 start().catch((err) => {

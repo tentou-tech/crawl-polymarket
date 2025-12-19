@@ -4,6 +4,7 @@ import knexConfig from './database/knexfile';
 import { CrawlerCTFExchangeService } from './services/crawlerCtfExchange';
 import { CrawlerUmaCtfAdapterService } from './services/crawlerUmaCtfAdapter';
 import { startMarketWorker } from './jobs/marketWorker'; // Start worker
+import { startTradeWorker } from './jobs/tradeWorker'; // Start worker
 import { marketQueue } from './jobs/marketQueue';
 import { tradeQueue } from './jobs/tradeQueue';
 
@@ -24,8 +25,6 @@ async function start() {
   const knex = Knex(knexConfig);
   Model.knex(knex);
   console.log('Database connected');
-  console.log('Model.knex() is set:', !!Model.knex());
-  console.log('Event.knex() is set:', !!Event.knex());
 
   // Bull Board Setup
   const serverAdapter = new ExpressAdapter();
@@ -33,8 +32,6 @@ async function start() {
 
   // Start Workers
   startMarketWorker();
-
-  const { startTradeWorker } = await import('./jobs/tradeWorker');
   startTradeWorker();
 
   createBullBoard({

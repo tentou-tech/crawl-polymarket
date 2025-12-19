@@ -1,4 +1,4 @@
-import { parseAbiItem } from 'viem';
+import { parseAbiItem, PublicClient } from 'viem';
 import { BaseCrawlerService } from './BaseCrawler';
 
 // Polymarket CTF Exchange Events
@@ -12,8 +12,8 @@ const POLYMARKET_EVENTS = [
 ];
 
 export class CrawlerCTFExchangeService extends BaseCrawlerService {
-  constructor() {
-    super(POLYMARKET_EVENTS);
+  constructor(client?: PublicClient) {
+    super(POLYMARKET_EVENTS, client);
   }
 
   protected async onEventSaved(eventName: string, args: any, log: any) {
