@@ -30,3 +30,5 @@ redis_data/
 .vscode/
 .idea/
 *.swp
+
+analysis/data/
