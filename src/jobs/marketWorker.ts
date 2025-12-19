@@ -3,8 +3,9 @@ import { redisConnection } from '../config/redis';
 import { MARKET_QUEUE_NAME } from './marketQueue';
 import { MarketService } from '../services/market';
 import { Market } from '../database/models/Market';
+import logger from '../utils/logger';
 
-console.log(`Initializing Market Worker module...`);
+logger.info(`Initializing Market Worker module...`);
 
 const marketService = new MarketService();
 
@@ -12,15 +13,15 @@ let worker: Worker | null = null;
 
 export const startMarketWorker = () => {
   if (worker) {
-    console.log('Market Worker already started.');
+    logger.info('Market Worker already started.');
     return worker;
   }
 
-  console.log(`Starting Market Worker for queue: ${MARKET_QUEUE_NAME}`);
+  logger.info(`Starting Market Worker for queue: ${MARKET_QUEUE_NAME}`);
   worker = new Worker(
     MARKET_QUEUE_NAME,
     async (job: Job) => {
-      console.log(`Processing market job ${job.name} (Job ID: ${job.id})`);
+      logger.info(`Processing market job ${job.name} (Job ID: ${job.id})`);
 
       if (job.name === 'fetch-market-metadata') {
         const { makerAssetId } = job.data;
@@ -34,7 +35,7 @@ export const startMarketWorker = () => {
           transactionHash
         );
       } else {
-        console.warn(`Unknown job name: ${job.name}`);
+        logger.warn(`Unknown job name: ${job.name}`);
       }
     },
     {
@@ -44,15 +45,15 @@ export const startMarketWorker = () => {
   );
 
   worker.on('ready', () => {
-    console.log('Worker is ready and connected to Redis.');
+    logger.info('Worker is ready and connected to Redis.');
   });
 
   worker.on('error', (err) => {
-    console.error('Worker failed to connect/error:', err);
+    logger.error(err, 'Worker failed to connect/error');
   });
 
   worker.on('failed', (job, err) => {
-    console.error(`Job ${job?.id} failed with error ${err.message}`);
+    logger.error(err, `Job ${job?.id} failed with error ${err.message}`);
   });
 
   return worker;
@@ -68,10 +69,10 @@ async function processFetchMarketMetadata(makerAssetId: string) {
       ? marketsResponse[0]
       : marketsResponse;
 
-    console.log(`SDK returned market: ${market?.slug || market?.market_slug}`);
+    logger.info(`SDK returned market: ${market?.slug || market?.market_slug}`);
 
     if (!market) {
-      console.log(`No market found for asset ${makerAssetId}`);
+      logger.info(`No market found for asset ${makerAssetId}`);
       return;
     }
 
@@ -81,7 +82,7 @@ async function processFetchMarketMetadata(makerAssetId: string) {
     const questionId = market.questionID || market.question_id;
 
     if (!conditionId || !slug) {
-      console.error('Invalid market data:', market);
+      logger.error({ market }, 'Invalid market data');
       return;
     }
 
@@ -94,7 +95,7 @@ async function processFetchMarketMetadata(makerAssetId: string) {
     try {
       clobTokenIds = JSON.parse(clobTokenIdsStr);
     } catch (e) {
-      console.error('Failed to parse clobTokenIds:', clobTokenIdsStr);
+      logger.error(e, `Failed to parse clobTokenIds: ${clobTokenIdsStr}`);
       clobTokenIds = [];
     }
     const clobTokenId0 = clobTokenIds[0] || null;
@@ -108,7 +109,7 @@ async function processFetchMarketMetadata(makerAssetId: string) {
         clobTokenId1,
         updatedAt: new Date().toISOString() as any, // Cast to any to satisfy TS validation if needed
       });
-      console.log(`Updated market ${slug}`);
+      logger.info(`Updated market ${slug}`);
     } else {
       await Market.query().insert({
         conditionId,
@@ -118,10 +119,10 @@ async function processFetchMarketMetadata(makerAssetId: string) {
         clobTokenId1,
         data: market,
       });
-      console.log(`Created market ${slug}`);
+      logger.info(`Created market ${slug}`);
     }
   } catch (error) {
-    console.error(`Job failed for asset ${makerAssetId}:`, error);
+    logger.error(error, `Job failed for asset ${makerAssetId}`);
     throw error;
   }
 }
@@ -162,7 +163,7 @@ async function processMarketResolution(
           );
         }
 
-        console.log(
+        logger.info(
           `Fetched latest market info for ${market.clobTokenId0} during resolution.`
         );
         updatedMarketData = { ...updatedMarketData, ...newMarketInfo };
@@ -184,11 +185,11 @@ async function processMarketResolution(
       updatedAt: new Date().toISOString() as any,
     });
 
-    console.log(`Updated market ${market.slug} with resolution data.`);
+    logger.info(`Updated market ${market.slug} with resolution data.`);
   } catch (error) {
-    console.error(
-      `Failed to process resolution for questionId ${questionId}:`,
-      error
+    logger.error(
+      error,
+      `Failed to process resolution for questionId ${questionId}`
     );
     throw error;
   }

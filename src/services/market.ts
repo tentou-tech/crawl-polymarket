@@ -1,6 +1,7 @@
 import { ClobClient } from '@polymarket/clob-client';
 import { polygon } from 'viem/chains';
 import axios, { AxiosInstance } from 'axios';
+import logger from '../utils/logger';
 
 export class MarketService {
   public client: ClobClient;
@@ -19,7 +20,7 @@ export class MarketService {
 
   async getMarkets() {
     try {
-      console.log('Fetching markets from Polymarket SDK...');
+      logger.debug('Fetching markets from Polymarket SDK...');
       // Fetching a simplified view or specific markets usually takes params.
       // getMarkets with no args might fetch a lot or paginated list.
       const response = await this.client.getMarkets();
@@ -27,24 +28,21 @@ export class MarketService {
       // Based on lint error 'PaginationPayload', it returns an object.
       const markets = (response as any).data || [];
 
-      console.log(`Successfully fetched ${markets.length || 0} markets.`);
-      if (markets.length > 0) {
-        console.log('Sample Market:', markets[0]);
-      }
+      logger.info(`Successfully fetched ${markets.length || 0} markets.`);
       return markets;
     } catch (error) {
-      console.error('Error fetching markets:', error);
+      logger.error(error, 'Error fetching markets');
       return [];
     }
   }
 
   async getEventBySlug(slug: string) {
     try {
-      console.log(`Fetching event for slug: ${slug}`);
+      logger.debug(`Fetching event for slug: ${slug}`);
       const response = await this.gammaClient.get(`/events/slug/${slug}`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching event for slug ${slug}:`, error);
+      logger.error(error, `Error fetching event for slug ${slug}`);
       return null;
     }
   }
@@ -57,14 +55,14 @@ export class MarketService {
           clob_token_ids: tokenId,
         },
       });
-      console.log(
+      logger.debug(
         `Gamma API returned ${
           response.data?.length || 0
         } markets for token ${tokenId}`
       );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching market for token ${tokenId}:`, error);
+      logger.error(error, `Error fetching market for token ${tokenId}`);
       return [];
     }
   }

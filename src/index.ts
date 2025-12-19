@@ -7,6 +7,7 @@ import { startMarketWorker } from './jobs/marketWorker'; // Start worker
 import { startTradeWorker } from './jobs/tradeWorker'; // Start worker
 import { marketQueue } from './jobs/marketQueue';
 import { tradeQueue } from './jobs/tradeQueue';
+import logger from './utils/logger';
 
 import express from 'express';
 import { createBullBoard } from '@bull-board/api';
@@ -24,7 +25,7 @@ async function start() {
   // Initialize DB
   const knex = Knex(knexConfig);
   Model.knex(knex);
-  console.log('Database connected');
+  logger.info('Database connected');
 
   // Bull Board Setup
   const serverAdapter = new ExpressAdapter();
@@ -43,8 +44,8 @@ async function start() {
   app.use('/admin/queues', serverAdapter.getRouter());
 
   app.listen(3000, () => {
-    console.log('Running on 3000...');
-    console.log('For the UI, open http://localhost:3000/admin/queues');
+    logger.info('Running on 3000...');
+    logger.info('For the UI, open http://localhost:3000/admin/queues');
   });
 
   // Polymarket CTF Exchange Addresses
@@ -97,6 +98,6 @@ async function start() {
 }
 
 start().catch((err) => {
-  console.error('Error starting app:', err);
+  logger.error(err, 'Error starting app');
   process.exit(1);
 });

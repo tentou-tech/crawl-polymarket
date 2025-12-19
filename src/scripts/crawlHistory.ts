@@ -8,6 +8,7 @@ import { CrawlerCTFExchangeService } from '../services/crawlerCtfExchange';
 import { CrawlerUmaCtfAdapterService } from '../services/crawlerUmaCtfAdapter';
 import { startMarketWorker } from '../jobs/marketWorker';
 import { startTradeWorker } from '../jobs/tradeWorker';
+import logger from '../utils/logger';
 
 import dotenv from 'dotenv';
 import path from 'path';
@@ -18,10 +19,10 @@ async function start() {
   // Initialize DB
   const knex = Knex(knexConfig);
   Model.knex(knex);
-  console.log('Database connected');
+  logger.info('Database connected');
 
   // Start Workers
-  console.log('Starting workers...');
+  logger.info('Starting workers...');
   startMarketWorker();
   startTradeWorker();
 
@@ -35,6 +36,8 @@ async function start() {
   const UMA_CTF_ADAPTER_CONTRACTS = [
     '0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74',
     '0x157ce2d672854c848c9b79c49a8cc6cc89176a49',
+    '0x65070BE91477460D8A7AeEb94ef92fe056C2f2A7',
+    '0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d',
   ];
 
   // Using http transport for historical fetches as it's generally more stable
@@ -52,7 +55,7 @@ async function start() {
   const fromBlock = 80000000n;
   const toBlock = 80381094n;
 
-  console.log(
+  logger.info(
     `Starting historical crawl from block ${fromBlock} to ${toBlock}`
   );
 
@@ -70,8 +73,8 @@ async function start() {
   //   )
   // );
 
-  console.log('All historical crawls completed.');
-  console.log(
+  logger.info('All historical crawls completed.');
+  logger.info(
     'Process will stay alive to allow workers to finish processing...'
   );
   // await knex.destroy(); // Do not close DB connection, workers need it
@@ -79,6 +82,6 @@ async function start() {
 }
 
 start().catch((err) => {
-  console.error('Error during historical crawl:', err);
+  logger.error(err, 'Error during historical crawl');
   process.exit(1);
 });

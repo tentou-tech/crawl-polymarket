@@ -4,23 +4,24 @@ import { TRADE_QUEUE_NAME } from './tradeQueue';
 import { Trade } from '../database/models/Trade';
 import { Market } from '../database/models/Market';
 import { addMarketJob } from './marketQueue';
+import logger from '../utils/logger';
 
-console.log(`Initializing Trade Worker module...`);
+logger.info(`Initializing Trade Worker module...`);
 
 let worker: Worker | null = null;
 
 export const startTradeWorker = () => {
   if (worker) {
-    console.log('Trade Worker already started.');
+    logger.info('Trade Worker already started.');
     return worker;
   }
 
-  console.log(`Starting Trade Worker for queue: ${TRADE_QUEUE_NAME}`);
+  logger.info(`Starting Trade Worker for queue: ${TRADE_QUEUE_NAME}`);
   worker = new Worker(
     TRADE_QUEUE_NAME,
     async (job: Job) => {
       const { transactionHash, blockNumber, args } = job.data;
-      console.log(
+      logger.info(
         `Processing trade job for tx ${transactionHash} (Job ID: ${job.id})`
       );
 
@@ -49,7 +50,7 @@ export const startTradeWorker = () => {
           usdcVolume = Number(making); // usdc given
         } else {
           // Should not happen for valid trades involving at least one real asset
-          console.log(
+          logger.info(
             `Skipping trade with no valid token ID (maker: ${makerAssetId}, taker: ${takerAssetId})`
           );
           return;
@@ -62,7 +63,7 @@ export const startTradeWorker = () => {
         const usdcDisplay = usdcVolume / 1e6;
         const price = sharesDisplay > 0 ? usdcDisplay / sharesDisplay : 0;
 
-        console.log(
+        logger.info(
           `Trade details: ${side} ${sharesDisplay} shares of ${tokenId} for $${usdcDisplay} ($${price.toFixed(
             4
           )})`
@@ -88,7 +89,7 @@ export const startTradeWorker = () => {
           }
           const liquidityNum = Number(market.data.liquidity || 0);
           // Simple formatting for finding it easily
-          console.log(
+          logger.info(
             `Matched Market: ${marketSlug}, Outcome: ${outcome}, Liquidity: ${liquidityNum}`
           );
         } else {
@@ -115,9 +116,9 @@ export const startTradeWorker = () => {
           timestamp: new Date().toISOString(),
         });
 
-        console.log(`Saved trade ${side} for ${marketSlug || tokenId}`);
+        logger.info(`Saved trade ${side} for ${marketSlug || tokenId}`);
       } catch (error) {
-        console.error(`Trade Job failed for tx ${transactionHash}:`, error);
+        logger.error(error, `Trade Job failed for tx ${transactionHash}`);
         throw error;
       }
     },
@@ -128,7 +129,7 @@ export const startTradeWorker = () => {
   );
 
   worker.on('ready', () => {
-    console.log('Trade Worker is ready and connected to Redis.');
+    logger.info('Trade Worker is ready and connected to Redis.');
   });
 
   return worker;

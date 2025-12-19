@@ -1,5 +1,6 @@
 import { parseAbiItem, PublicClient } from 'viem';
 import { BaseCrawlerService } from './BaseCrawler';
+import logger from '../utils/logger';
 
 // UMA CTF Adapter Events
 const UMA_CTF_ADAPTER_EVENTS = [
@@ -24,7 +25,7 @@ export class CrawlerUmaCtfAdapterService extends BaseCrawlerService {
           payouts.map((p: any) => p.toString()),
           log.transactionHash
         );
-        console.log(`Queued market resolution for question ${questionID}`);
+        logger.debug(`Queued market resolution for question ${questionID}`);
       }
     }
   }

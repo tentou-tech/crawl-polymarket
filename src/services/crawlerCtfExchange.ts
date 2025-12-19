@@ -1,5 +1,6 @@
 import { parseAbiItem, PublicClient } from 'viem';
 import { BaseCrawlerService } from './BaseCrawler';
+import logger from '../utils/logger';
 
 // Polymarket CTF Exchange Events
 const POLYMARKET_EVENTS = [
@@ -29,7 +30,7 @@ export class CrawlerCTFExchangeService extends BaseCrawlerService {
           Number(log.logIndex),
           log.transactionHash
         );
-        console.log(`Queued market fetch for asset ${tokenId}`);
+        logger.debug(`Queued market fetch for asset ${tokenId}`);
 
         const { addTradeJob } = require('../jobs/tradeQueue');
         await addTradeJob(

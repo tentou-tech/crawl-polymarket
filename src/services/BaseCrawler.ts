@@ -1,6 +1,7 @@
 import { createPublicClient, webSocket, http, PublicClient } from 'viem';
 import { polygon } from 'viem/chains';
 import { Event } from '../database/models/Event';
+import logger from '../utils/logger';
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -29,12 +30,12 @@ export abstract class BaseCrawlerService {
   }
 
   async listen(contractAddress: string | string[]) {
-    console.log(`Starting WebSocket listener for ${contractAddress}`);
+    logger.info(`Starting WebSocket listener for ${contractAddress}`);
     this.client.watchEvent({
       address: contractAddress as `0x${string}` | `0x${string}`[],
       events: this.eventsAbi,
       onLogs: async (logs) => {
-        console.log(
+        logger.debug(
           `Received ${logs.length} new events via WebSocket on ${contractAddress}`
         );
         for (const log of logs) {
@@ -42,11 +43,11 @@ export abstract class BaseCrawlerService {
         }
       },
       onError: (error) => {
-        console.error(`WebSocket Error (${contractAddress}):`, error);
+        logger.error(error, `WebSocket Error (${contractAddress})`);
       },
     });
 
-    console.log(`Listening for events on ${contractAddress}...`);
+    logger.info(`Listening for events on ${contractAddress}...`);
   }
 
   async crawlHistory(
@@ -54,7 +55,7 @@ export abstract class BaseCrawlerService {
     fromBlock: bigint,
     toBlock: bigint
   ) {
-    console.log(
+    logger.info(
       `Starting historical crawl for ${contractAddress} from ${fromBlock} to ${toBlock}`
     );
 
@@ -66,7 +67,7 @@ export abstract class BaseCrawlerService {
         currentBlock + CHUNK_SIZE > toBlock
           ? toBlock
           : currentBlock + CHUNK_SIZE;
-      console.log(`Fetching logs from ${currentBlock} to ${endBlock}...`);
+      logger.info(`Fetching logs from ${currentBlock} to ${endBlock}...`);
 
       try {
         const logs = await this.client.getLogs({
@@ -76,20 +77,20 @@ export abstract class BaseCrawlerService {
           toBlock: endBlock,
         });
 
-        console.log(`Received ${logs.length} historical events`);
+        logger.info(`Received ${logs.length} historical events`);
         for (const log of logs) {
           await this.processLog(log);
         }
       } catch (e) {
-        console.error(
-          `Error fetching logs for range ${currentBlock}-${endBlock}:`,
-          e
+        logger.error(
+          e,
+          `Error fetching logs for range ${currentBlock}-${endBlock}`
         );
       }
 
       currentBlock = endBlock + 1n;
     }
-    console.log('Historical crawl completed.');
+    logger.info('Historical crawl completed.');
   }
 
   private async processLog(log: any) {
@@ -118,7 +119,7 @@ export abstract class BaseCrawlerService {
       eventName: log.eventName,
       args: args,
     });
-    console.log(`Saved event ${log.eventName} from tx ${log.transactionHash}`);
+    logger.debug(`Saved event ${log.eventName} from tx ${log.transactionHash}`);
 
     await this.onEventSaved(log.eventName as string, args, log);
   }
